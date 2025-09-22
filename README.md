@@ -187,6 +187,22 @@ The project includes REST API endpoints for easy testing and integration. After 
 }
 ```
 
+#### 📸 API Testing Screenshots
+
+Below are real examples of the API endpoints in action using Postman:
+
+**Health Check Endpoint:**
+![Health Check](screenshots/health.png)
+
+**Process Data Endpoint:**
+![Process Data](screenshots/process.png)
+
+**Job Status Endpoint:**
+![Job Status](screenshots/jobId.png)
+
+**Results Endpoint:**
+![Results](screenshots/results.png)
+
 ## 📊 Usage
 
 ### 1. Trigger Data Pipeline
