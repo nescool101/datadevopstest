@@ -1,0 +1,267 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789012",
+		"name": "AWS Data Pipeline API",
+		"description": "Collection for testing the AWS Data Pipeline REST API endpoints.\n\n## Setup Instructions\n\n1. Deploy the CDK stack to get the API Gateway URL\n2. Update the `{{base_url}}` variable with your API Gateway URL\n3. Run the requests in order: Health Check → Process Data → Check Status → Get Results\n\n## Environment Variables\n\n- `base_url`: Your API Gateway base URL (e.g., https://abc123.execute-api.us-east-1.amazonaws.com/prod)\n- `job_id`: Will be automatically set from the Process Data response",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has status field\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('status');",
+							"    pm.expect(jsonData.status).to.eql('healthy');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Check if the API is healthy and responding correctly."
+			},
+			"response": []
+		},
+		{
+			"name": "Process Data from URL",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 202\", function () {",
+							"    pm.response.to.have.status(202);",
+							"});",
+							"",
+							"pm.test(\"Response has job_id\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('job_id');",
+							"    pm.environment.set('job_id', jsonData.job_id);",
+							"});",
+							"",
+							"pm.test(\"Response has processing status\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql('processing');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\": \"https://jsonplaceholder.typicode.com/users\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/process",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"process"
+					]
+				},
+				"description": "Trigger data processing from a JSON API URL. This will download the data and store it in S3 for processing."
+			},
+			"response": []
+		},
+		{
+			"name": "Process Data from Posts API",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 202\", function () {",
+							"    pm.response.to.have.status(202);",
+							"});",
+							"",
+							"pm.test(\"Response has job_id\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('job_id');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\": \"https://jsonplaceholder.typicode.com/posts\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/process",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"process"
+					]
+				},
+				"description": "Alternative example: Process posts data from JSONPlaceholder API."
+			},
+			"response": []
+		},
+		{
+			"name": "Check Job Status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has job information\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('job_id');",
+							"    pm.expect(jsonData).to.have.property('status');",
+							"    pm.expect(jsonData).to.have.property('created_at');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/status/{{job_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"status",
+						"{{job_id}}"
+					]
+				},
+				"description": "Check the status of a processing job using the job_id from the previous request."
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Results",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has results structure\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('processed_files');",
+							"    pm.expect(jsonData).to.have.property('statistics');",
+							"    pm.expect(jsonData).to.have.property('total_files');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/results",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"results"
+					]
+				},
+				"description": "Get a list of all processed files and download URLs, plus job statistics."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://htncxklsvl.execute-api.us-east-1.amazonaws.com/prod",
+			"description": "Base URL of your API Gateway. Update this after deploying the CDK stack."
+		},
+		{
+			"key": "job_id",
+			"value": "",
+			"description": "Job ID from the process request. This will be automatically set."
+		}
+	]
+}
